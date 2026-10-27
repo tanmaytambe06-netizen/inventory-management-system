@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Retail Shop Inventory Tracker & Demand Forecaster</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      background-color: #ffffff;
+      color: #333333;
+      line-height: 1.5;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* Header */
+    .header {
+      background-color: #0b5ed7;
+      color: #ffffff;
+      padding: 20px;
+      text-align: center;
+      border-bottom: 3px solid #084298;
+    }
+
+    .header h1 {
+      font-size: 24px;
+      margin-bottom: 5px;
+    }
+
+    .header p {
+      font-size: 14px;
+      color: #e9ecef;
+    }
+
+    /* Main Container */
+    .container {
+      max-width: 1200px;
+      width: 95%;
+      margin: 20px auto;
+      flex: 1;
+    }
+
+    /* System Tabs */
+    .navbar {
+      display: flex;
+      gap: 5px;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #0d6efd;
+    }
+
+    .nav-btn {
+      background-color: #e9ecef;
+      color: #0b5ed7;
+      border: 1px solid #ced4da;
+      border-bottom: none;
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      border-radius: 4px 4px 0 0;
+    }
+
+    .nav-btn.active {
+      background-color: #0d6efd;
+      color: #ffffff;
+      border-color: #0d6efd;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* KPI Cards */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+
+    .metric-box {
+      background-color: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+      padding: 15px;
+      text-align: center;
+    }
+
+    .metric-box h3 {
+      font-size: 13px;
+      color: #6c757d;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+    }
+
+    .metric-box p {
+      font-size: 24px;
+      font-weight: bold;
+      color: #0d6efd;
+    }
+
+    .metric-box.alert p {
+      color: #dc3545;
+    }
+
+    /* Notification Box */
+    .alert {
+      padding: 12px 16px;
+      margin-bottom: 20px;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    .alert-success {
+      background-color: #d1e7dd;
+      border: 1px solid #badbcc;
+      color: #0f5132;
+    }
+
+    .alert-error {
+      background-color: #f8d7da;
+      border: 1px solid #f5c2c7;
+      color: #842029;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* Form Container */
+    .form-container {
+      background-color: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+      padding: 20px;
+      margin-bottom: 25px;
+    }
+
+    .form-container h3 {
+      font-size: 16px;
+      color: #0b5ed7;
+      margin-bottom: 12px;
+      border-bottom: 1px solid #dee2e6;
+      padding-bottom: 6px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-group label {
+      font-size: 12px;
+      font-weight: bold;
+      margin-bottom: 4px;
+      color: #495057;
+    }
+
+    .form-group input,
+    .form-group select {
+      padding: 8px 10px;
+      border: 1px solid #ced4da;
+      border-radius: 4px;
+      font-size: 14px;
+      background-color: #ffffff;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: #86b7fe;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    /* Search & Filter Bar */
+    .search-bar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+    }
+
+    .search-bar input {
+      flex: 1;
+      min-width: 260px;
+      padding: 8px 12px;
+      border: 1px solid #ced4da;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    /* Data Tables */
+    .table-responsive {
+      overflow-x: auto;
+      margin-bottom: 25px;
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .data-table th,
+    .data-table td {
+      border: 1px solid #dee2e6;
+      padding: 9px 10px;
+      text-align: left;
+    }
+
+    .data-table th {
+      background-color: #e9ecef;
+      color: #212529;
+      font-weight: bold;
+      white-space: nowrap;
+    }
+
+    .data-table tbody tr:nth-child(even) {
+      background-color: #fcfcfc;
+    }
+
+    .data-table tbody tr:hover {
+      background-color: #f1f3f5;
+    }
+
+    .row-reorder-needed {
+      background-color: #fff3cd !important;
+      color: #664d03;
+    }
+
+    /* Status Badges */
+    .badge {
+      display: inline-block;
+      padding: 3px 6px;
+      font-size: 11px;
+      font-weight: bold;
+      border-radius: 3px;
+      white-space: nowrap;
+    }
+
+    .badge-reorder {
+      background-color: #f8d7da;
+      color: #842029;
+      border: 1px solid #f5c2c7;
+    }
+
+    .badge-ok {
+      background-color: #d1e7dd;
+      color: #0f5132;
+      border: 1px solid #badbcc;
+    }
+
+    /* Buttons */
+    .btn {
+      padding: 8px 14px;
+      border: none;
+      border-radius: 4px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background-color: #0d6efd;
+      color: #ffffff;
+    }
+
+    .btn-primary:hover {
+      background-color: #0b5ed7;
+    }
+
+    .btn-secondary {
+      background-color: #6c757d;
+      color: #ffffff;
+    }
+
+    .btn-secondary:hover {
+      background-color: #5c636a;
+    }
+
+    .btn-danger {
+      background-color: #dc3545;
+      color: #ffffff;
+    }
+
+    .btn-danger:hover {
+      background-color: #bb2d3b;
+    }
+
+    .btn-sm {
+      padding: 4px 8px;
+      font-size: 12px;
+      margin-right: 3px;
+    }
+
+    /* Formula Explanation Box */
+    .info-card {
+      background-color: #e7f1ff;
+      border: 1px solid #b6d4fe;
+      border-radius: 4px;
+      padding: 15px;
+      margin-bottom: 20px;
+      font-size: 13px;
+      color: #084298;
+    }
+
+    .info-card ul {
+      margin-left: 20px;
+      margin-top: 6px;
+    }
+
+    /* Footer */
+    .footer {
+      background-color: #f8f9fa;
+      border-top: 1px solid #dee2e6;
+      padding: 14px;
+      text-align: center;
+      font-size: 12px;
+      color: #6c757d;
+      margin-top: auto;
+    }
+
+    @media (max-width: 768px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <h1>Retail Shop Inventory Tracker</h1>
+    <p>Stock Monitoring, Reorder Level Management & Demand Forecasting</p>
+  </header>
+
+  <div class="container">
+
+    <!-- Alert / Toast Message -->
+    <div id="alertBox" class="alert hidden"></div>
+
+    <!-- Navigation Tabs -->
+    <div class="navbar">
+      <button class="nav-btn active" onclick="switchTab('inventory-tab')">Inventory & Forecasting</button>
+      <button class="nav-btn" onclick="switchTab('operations-tab')">Daily Sales / Restock</button>
+      <button class="nav-btn" onclick="switchTab('guide-tab')">Formulas & Logic</button>
+    </div>
+
+    <!-- 1. MAIN INVENTORY & FORECASTING TAB -->
+    <section id="inventory-tab" class="tab-content active">
+
+      <!-- Executive Metrics -->
+      <div class="metrics-grid">
+        <div class="metric-box">
+          <h3>Total Retail Products</h3>
+          <p id="totalProductsCount">0</p>
+        </div>
+        <div class="metric-box">
+          <h3>Total Units On Hand</h3>
+          <p id="totalUnitsCount">0</p>
+        </div>
+        <div class="metric-box alert">
+          <h3>Items Needing Reorder</h3>
+          <p id="reorderAlertCount">0</p>
+        </div>
+        <div class="metric-box">
+          <h3>Inventory Valuation</h3>
+          <p id="totalValuation">₹0.00</p>
+        </div>
+      </div>
+
+      <!-- Combined Master Form: Details + Forecasting + Reorder Config -->
+      <div class="form-container">
+        <h3 id="formTitle">Register / Update Retail Product</h3>
+        <form id="productForm" onsubmit="handleProductSubmit(event)">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="prodId">Item / SKU Code:</label>
+              <input type="text" id="prodId" placeholder="e.g., RET-101" required>
+            </div>
+            <div class="form-group">
+              <label for="prodName">Item Name:</label>
+              <input type="text" id="prodName" placeholder="e.g., Basmati Rice 5kg" required>
+            </div>
+            <div class="form-group">
+              <label for="prodCategory">Category:</label>
+              <select id="prodCategory" required>
+                <option value="">-- Choose Category --</option>
+                <option value="Grocery">Grocery</option>
+                <option value="Packaged Foods">Packaged Foods</option>
+                <option value="Personal Care">Personal Care</option>
+                <option value="Beverages">Beverages</option>
+                <option value="Household">Household</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="prodPrice">Retail Unit Price (₹):</label>
+              <input type="number" id="prodPrice" min="0" step="0.5" placeholder="0.00" required>
+            </div>
+            <div class="form-group">
+              <label for="prodCurrentStock">Current Stock (Units):</label>
+              <input type="number" id="prodCurrentStock" min="0" placeholder="0" required>
+            </div>
+            <div class="form-group">
+              <label for="prodDailySales">Avg Daily Sales (Demand):</label>
+              <input type="number" id="prodDailySales" min="0" step="0.1" placeholder="e.g., 5" required>
+            </div>
+            <div class="form-group">
+              <label for="prodLeadTime">Supplier Lead Time (Days):</label>
+              <input type="number" id="prodLeadTime" min="1" placeholder="e.g., 3" required>
+            </div>
+            <div class="form-group">
+              <label for="prodSafetyStock">Safety Buffer Stock (Units):</label>
+              <input type="number" id="prodSafetyStock" min="0" placeholder="e.g., 10" required>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" id="saveBtn" class="btn btn-primary">Save Product & Compute Forecast</button>
+            <button type="button" id="cancelBtn" class="btn btn-secondary hidden" onclick="cancelEdit()">Cancel</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Live Search Filter -->
+      <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Search by SKU Code, Name, or Category..." oninput="handleSearch()">
+      </div>
+
+      <!-- Master Inventory, Reorder & Forecasting Table -->
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>SKU</th>
+              <th>Product Name</th>
+              <th>Category</th>
+              <th>Price (₹)</th>
+              <th>Stock</th>
+              <th>Avg Daily Sales</th>
+              <th>Lead Time</th>
+              <th>Reorder Point (ROP)</th>
+              <th>Days of Stock Left</th>
+              <th>30-Day Demand Forecast</th>
+              <th>Recommended Reorder Qty</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="inventoryTableBody">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+      </div>
+
+    </section>
+
+    <!-- 2. DAILY SALES & RESTOCK OPERATIONS TAB -->
+    <section id="operations-tab" class="tab-content">
+      <div class="form-container">
+        <h3>Quick Stock In (Restock) / Stock Out (Retail Sale)</h3>
+        <form id="stockForm" onsubmit="handleQuickTransaction(event)">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="txnProductSelect">Select Retail Product:</label>
+              <select id="txnProductSelect" required>
+                <option value="">-- Select Product --</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="txnAction">Transaction Type:</label>
+              <select id="txnAction" required>
+                <option value="sale">Record Sale (Dispatch / Stock Out)</option>
+                <option value="restock">Receive Shipment (Stock In)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="txnQuantity">Quantity (Units):</label>
+              <input type="number" id="txnQuantity" min="1" placeholder="Enter units" required>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Process Transaction</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Immediate Needs Table -->
+      <h3>Active Purchase Orders Needed Immediately</h3>
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>SKU</th>
+              <th>Item Name</th>
+              <th>Current Stock</th>
+              <th>Reorder Point</th>
+              <th>Deficit</th>
+              <th>Recommended Order Qty</th>
+              <th>Estimated Restock Cost (₹)</th>
+            </tr>
+          </thead>
+          <tbody id="urgentRestockTableBody">
+            <!-- Populated dynamically -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 3. FORMULAS & DOCUMENTATION TAB -->
+    <section id="guide-tab" class="tab-content">
+      <div class="info-card">
+        <h3>Inventory Calculations Used in This System:</h3>
+        <ul>
+          <li><strong>Reorder Point (ROP):</strong> <code>(Average Daily Demand &times; Lead Time Days) + Safety Buffer Stock</code><br>
+          <em>Indicates the exact stock quantity at which a new order must be placed before running out.</em></li>
+          <br>
+          <li><strong>Stock Depletion Runout (Days Left):</strong> <code>Current Stock &divide; Average Daily Demand</code><br>
+          <em>Estimates how many business days remain until the item runs out of stock completely.</em></li>
+          <br>
+          <li><strong>30-Day Demand Forecast:</strong> <code>Average Daily Demand &times; 30 Days</code><br>
+          <em>Projects retail customer purchases over the next 1-month sales cycle.</em></li>
+          <br>
+          <li><strong>Suggested Reorder Quantity (EOQ estimate):</strong> <code>(30-Day Forecast + Safety Stock) &minus; Current Stock</code><br>
+          <em>Calculates exact replacement units needed to restore safe inventory levels.</em></li>
+        </ul>
+      </div>
+
+      <div class="form-container">
+        <h3>Sample Data Operations</h3>
+        <p style="margin-bottom: 12px; font-size: 13px;">Reset the database back to clean retail products (stored locally in browser LocalStorage):</p>
+        <button class="btn btn-danger" onclick="resetToRetailSamples()">Reset to Sample Retail Store Data</button>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>&copy; 2026 Retail Shop Inventory Management & Demand Forecasting System</p>
+  </footer>
+
+  <script>
+    // Initial demo inventory for a retail provision store
+    const INITIAL_RETAIL_DATA = [
+      { id: "RET-101", name: "Fortune Sunflower Oil 1L", category: "Grocery", price: 145.00, stock: 12, dailySales: 8, leadTime: 3, safetyStock: 10 },
+      { id: "RET-102", name: "Tata Salt 1kg", category: "Grocery", price: 28.00, stock: 65, dailySales: 10, leadTime: 2, safetyStock: 15 },
+      { id: "RET-103", name: "Colgate MaxFresh 150g", category: "Personal Care", price: 110.00, stock: 9, dailySales: 4, leadTime: 4, safetyStock: 8 },
+      { id: "RET-104", name: "Maggi 2-Minute Noodles 280g", category: "Packaged Foods", price: 50.00, stock: 80, dailySales: 12, leadTime: 3, safetyStock: 20 },
+      { id: "RET-105", name: "Bru Instant Coffee 100g", category: "Beverages", price: 185.00, stock: 6, dailySales: 3, leadTime: 4, safetyStock: 5 },
+      { id: "RET-106", name: "Surf Excel Detergent 1kg", category: "Household", price: 135.00, stock: 24, dailySales: 5, leadTime: 2, safetyStock: 10 }
+    ];
+
+    let inventory = [];
+    let isEditing = false;
+    let editTargetId = null;
+
+    // Currency Formatter
+    function formatINR(val) {
+      return "₹" + Number(val).toLocaleString("en-IN", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    }
+
+    // App Initialization
+    document.addEventListener("DOMContentLoaded", () => {
+      loadStorageData();
+      renderAllViews();
+    });
+
+    // LocalStorage handlers
+    function loadStorageData() {
+      const stored = localStorage.getItem("retail_inventory_data");
+      if (stored) {
+        inventory = JSON.parse(stored);
+      } else {
+        inventory = [...INITIAL_RETAIL_DATA];
+        saveStorageData();
+      }
+    }
+
+    function saveStorageData() {
+      localStorage.setItem("retail_inventory_data", JSON.stringify(inventory));
+    }
+
+    // Tab Navigation
+    function switchTab(targetId) {
+      document.querySelectorAll(".tab-content").forEach(el => el.classList.remove("active"));
+      document.querySelectorAll(".nav-btn").forEach(el => el.classList.remove("active"));
+
+      document.getElementById(targetId).classList.add("active");
+      
+      const matchedBtn = Array.from(document.querySelectorAll(".nav-btn"))
+        .find(btn => btn.getAttribute("onclick").includes(targetId));
+      if (matchedBtn) matchedBtn.classList.add("active");
+
+      renderAllViews();
+    }
+
+    // Notification Banner
+    function notify(message, type = "success") {
+      const box = document.getElementById("alertBox");
+      box.className = `alert alert-${type}`;
+      box.innerText = message;
+      box.classList.remove("hidden");
+      setTimeout(() => box.classList.add("hidden"), 3500);
+    }
+
+    // Business Math Calculations
+    function computeInventoryMetrics(item) {
+      // Reorder Point = (Lead Time Demand) + Safety Buffer
+      const rop = Math.ceil((item.dailySales * item.leadTime) + item.safetyStock);
+      
+      // Stock Runout time in Days
+      const daysRemaining = item.dailySales > 0 ? (item.stock / item.dailySales).toFixed(1) : "N/A";
+      
+      // Next 30 Days Forecast Demand
+      const forecast30 = Math.ceil(item.dailySales * 30);
+      
+      // Suggested Reorder Quantity to cover 30 days and keep safety stock
+      const targetHolding = forecast30 + item.safetyStock;
+      const reorderQty = item.stock <= rop ? Math.max(0, targetHolding - item.stock) : 0;
+      
+      const needsReorder = item.stock <= rop;
+
+      return { rop, daysRemaining, forecast30, reorderQty, needsReorder };
+    }
+
+    // Master Render Method
+    function renderAllViews() {
+      renderMetrics();
+      renderInventoryTable(inventory);
+      populateTransactionDropdown();
+      renderUrgentRestockTable();
+    }
+
+    // KPI Cards
+    function renderMetrics() {
+      let totalUnits = 0;
+      let totalVal = 0;
+      let reorderCount = 0;
+
+      inventory.forEach(item => {
+        totalUnits += item.stock;
+        totalVal += (item.stock * item.price);
+        const calc = computeInventoryMetrics(item);
+        if (calc.needsReorder) reorderCount++;
+      });
+
+      document.getElementById("totalProductsCount").innerText = inventory.length;
+      document.getElementById("totalUnitsCount").innerText = totalUnits;
+      document.getElementById("reorderAlertCount").innerText = reorderCount;
+      document.getElementById("totalValuation").innerText = formatINR(totalVal);
+    }
+
+    // Table Rendering
+    function renderInventoryTable(items) {
+      const tbody = document.getElementById("inventoryTableBody");
+      tbody.innerHTML = "";
+
+      if (items.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="13" style="text-align:center;">No inventory records match the search.</td></tr>`;
+        return;
+      }
+
+      items.forEach(item => {
+        const { rop, daysRemaining, forecast30, reorderQty, needsReorder } = computeInventoryMetrics(item);
+        const tr = document.createElement("tr");
+        if (needsReorder) tr.className = "row-reorder-needed";
+
+        tr.innerHTML = `
+          <td><strong>${item.id}</strong></td>
+          <td>${item.name}</td>
+          <td>${item.category}</td>
+          <td>${formatINR(item.price)}</td>
+          <td><strong>${item.stock}</strong></td>
+          <td>${item.dailySales} / day</td>
+          <td>${item.leadTime} days</td>
+          <td>${rop} units</td>
+          <td>${daysRemaining} ${daysRemaining !== "N/A" ? 'days' : ''}</td>
+          <td><strong>${forecast30} units</strong></td>
+          <td>${needsReorder ? `<strong>${reorderQty} units</strong>` : '-'}</td>
+          <td>
+            <span class="badge ${needsReorder ? 'badge-reorder' : 'badge-ok'}">
+              ${needsReorder ? 'Order Now' : 'Optimal'}
+            </span>
+          </td>
+          <td>
+            <button class="btn btn-primary btn-sm" onclick="editProduct('${item.id}')">Edit</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteProduct('${item.id}')">Del</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Populate transaction dropdown
+    function populateTransactionDropdown() {
+      const select = document.getElementById("txnProductSelect");
+      select.innerHTML = '<option value="">-- Select Product --</option>';
+
+      inventory.forEach(item => {
+        const opt = document.createElement("option");
+        opt.value = item.id;
+        opt.textContent = `${item.id} - ${item.name} (Stock: ${item.stock})`;
+        select.appendChild(opt);
+      });
+    }
+
+    // Render Urgent Restock Order Table
+    function renderUrgentRestockTable() {
+      const tbody = document.getElementById("urgentRestockTableBody");
+      tbody.innerHTML = "";
+
+      const urgentItems = inventory.filter(item => computeInventoryMetrics(item).needsReorder);
+
+      if (urgentItems.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;">All stock levels are above reorder points. No orders needed.</td></tr>`;
+        return;
+      }
+
+      urgentItems.forEach(item => {
+        const { rop, reorderQty } = computeInventoryMetrics(item);
+        const deficit = rop - item.stock;
+        const estimatedCost = reorderQty * item.price;
+
+        const tr = document.createElement("tr");
+        tr.className = "row-reorder-needed";
+        tr.innerHTML = `
+          <td><strong>${item.id}</strong></td>
+          <td>${item.name}</td>
+          <td>${item.stock}</td>
+          <td>${rop}</td>
+          <td>${deficit > 0 ? deficit : 0} units</td>
+          <td><strong>${reorderQty} units</strong></td>
+          <td><strong>${formatINR(estimatedCost)}</strong></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Add or Update Product
+    function handleProductSubmit(e) {
+      e.preventDefault();
+
+      const id = document.getElementById("prodId").value.trim();
+      const name = document.getElementById("prodName").value.trim();
+      const category = document.getElementById("prodCategory").value;
+      const price = parseFloat(document.getElementById("prodPrice").value);
+      const stock = parseInt(document.getElementById("prodCurrentStock").value, 10);
+      const dailySales = parseFloat(document.getElementById("prodDailySales").value);
+      const leadTime = parseInt(document.getElementById("prodLeadTime").value, 10);
+      const safetyStock = parseInt(document.getElementById("prodSafetyStock").value, 10);
+
+      if (isEditing) {
+        const idx = inventory.findIndex(i => i.id === editTargetId);
+        if (idx !== -1) {
+          inventory[idx] = { id: editTargetId, name, category, price, stock, dailySales, leadTime, safetyStock };
+          saveStorageData();
+          notify(`Updated product: ${name}`);
+          cancelEdit();
+        }
+      } else {
+        const exists = inventory.some(i => i.id.toLowerCase() === id.toLowerCase());
+        if (exists) {
+          notify(`Item Code "${id}" already exists. Use a unique code.`, "error");
+          return;
+        }
+
+        inventory.push({ id, name, category, price, stock, dailySales, leadTime, safetyStock });
+        saveStorageData();
+        notify(`Added product: ${name} with demand parameters`);
+        document.getElementById("productForm").reset();
+      }
+
+      renderAllViews();
+    }
+
+    // Set Edit Mode
+    function editProduct(id) {
+      const item = inventory.find(i => i.id === id);
+      if (!item) return;
+
+      switchTab("inventory-tab");
+
+      isEditing = true;
+      editTargetId = item.id;
+
+      document.getElementById("formTitle").innerText = `Edit Product & Demand Rules (${item.id})`;
+      document.getElementById("prodId").value = item.id;
+      document.getElementById("prodId").disabled = true;
+      document.getElementById("prodName").value = item.name;
+      document.getElementById("prodCategory").value = item.category;
+      document.getElementById("prodPrice").value = item.price;
+      document.getElementById("prodCurrentStock").value = item.stock;
+      document.getElementById("prodDailySales").value = item.dailySales;
+      document.getElementById("prodLeadTime").value = item.leadTime;
+      document.getElementById("prodSafetyStock").value = item.safetyStock;
+
+      document.getElementById("saveBtn").innerText = "Update Forecast & Stock Details";
+      document.getElementById("cancelBtn").classList.remove("hidden");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    // Cancel Edit Mode
+    function cancelEdit() {
+      isEditing = false;
+      editTargetId = null;
+      document.getElementById("productForm").reset();
+      document.getElementById("prodId").disabled = false;
+      document.getElementById("formTitle").innerText = "Register / Update Retail Product";
+      document.getElementById("saveBtn").innerText = "Save Product & Compute Forecast";
+      document.getElementById("cancelBtn").classList.add("hidden");
+    }
+
+    // Delete Product
+    function deleteProduct(id) {
+      if (!confirm(`Delete product ${id} from tracking?`)) return;
+
+      inventory = inventory.filter(i => i.id !== id);
+      saveStorageData();
+      notify(`Product ${id} deleted.`);
+      if (isEditing && editTargetId === id) cancelEdit();
+      renderAllViews();
+    }
+
+    // Handle Quick Sale / Shipment In
+    function handleQuickTransaction(e) {
+      e.preventDefault();
+
+      const prodId = document.getElementById("txnProductSelect").value;
+      const action = document.getElementById("txnAction").value;
+      const qty = parseInt(document.getElementById("txnQuantity").value, 10);
+
+      const item = inventory.find(i => i.id === prodId);
+      if (!item) return;
+
+      if (action === "sale") {
+        if (item.stock < qty) {
+          notify(`Insufficient stock! Only ${item.stock} units available to sell.`, "error");
+          return;
+        }
+        item.stock -= qty;
+        notify(`Sold ${qty} units of ${item.name}. Remaining: ${item.stock}`);
+      } else if (action === "restock") {
+        item.stock += qty;
+        notify(`Received ${qty} units for ${item.name}. New Stock: ${item.stock}`);
+      }
+
+      saveStorageData();
+      document.getElementById("txnQuantity").value = "";
+      renderAllViews();
+    }
+
+    // Search filter
+    function handleSearch() {
+      const q = document.getElementById("searchInput").value.toLowerCase().trim();
+      const filtered = inventory.filter(item => 
+        item.id.toLowerCase().includes(q) || 
+        item.name.toLowerCase().includes(q) || 
+        item.category.toLowerCase().includes(q)
+      );
+      renderInventoryTable(filtered);
+    }
+
+    // Reset database to retail defaults
+    function resetToRetailSamples() {
+      if (!confirm("Reset database to initial retail demo products?")) return;
+      inventory = [...INITIAL_RETAIL_DATA];
+      saveStorageData();
+      notify("Database reset to demo retail data.");
+      renderAllViews();
+    }
+  </script>
+</body>
+</html>
